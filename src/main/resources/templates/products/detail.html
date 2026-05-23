@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${product.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('Detalii produs', '/')}"></header>
+
+<main class="container">
+    <section class="panel product-detail">
+        <div class="product-detail-grid">
+            <div class="product-detail-image">
+                <img th:if="${product.imageUrl != null and !product.imageUrl.isEmpty()}"
+                     th:src="${product.imageUrl}" th:alt="${product.name}"
+                     onerror="this.parentElement.classList.add('no-image')"/>
+                <div class="image-placeholder" th:if="${product.imageUrl == null or product.imageUrl.isEmpty()}">
+                    Fara imagine
+                </div>
+            </div>
+
+            <div class="product-detail-info">
+                <h2 class="product-detail-title" th:text="${product.name}"></h2>
+
+                <div class="detail-prices">
+                    <div class="detail-price-card">
+                        <span class="label">Pret <span th:text="${defaultCurrency}">USD</span></span>
+                        <span class="value price-usd"
+                              th:text="${#numbers.formatDecimal(product.price, 1, 2) + ' ' + defaultCurrency}"></span>
+                    </div>
+                    <div class="detail-price-card highlight">
+                        <span class="label">Pret RON (curs BNR)</span>
+                        <span class="value price-ron"
+                              th:text="${product.priceRon != null ? #numbers.formatDecimal(product.priceRon, 1, 2) + ' RON' : '—'}"></span>
+                    </div>
+                    <div class="detail-price-card" th:if="${product.exchangeRate != null}">
+                        <span class="label">Curs aplicat</span>
+                        <span class="value"
+                              th:text="${product.exchangeCurrency + ' → RON: ' + #numbers.formatDecimal(product.exchangeRate, 1, 4)}"></span>
+                    </div>
+                </div>
+
+                <div class="detail-meta" th:if="${product.updatedAt != null or product.rateDate != null}">
+                    <p th:if="${product.updatedAt != null}">
+                        Ultima actualizare:
+                        <span th:text="${#temporals.format(product.updatedAt, 'dd.MM.yyyy HH:mm')}"></span>
+                    </p>
+                    <p th:if="${product.rateDate != null}">
+                        Curs calculat la:
+                        <span th:text="${#temporals.format(product.rateDate, 'dd.MM.yyyy HH:mm')}"></span>
+                    </p>
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/products/{id}/edit(id=${product.id})}" class="btn btn-primary">Edit</a>
+                    <a th:href="@{/}" class="btn btn-ghost">Inapoi la lista</a>
+                    <form th:action="@{/products/{id}/delete(id=${product.id})}" method="post"
+                          onsubmit="return confirm('Stergi produsul?');">
+                        <button type="submit" class="btn btn-danger">Sterge</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <section class="product-detail-description">
+            <h3 class="panel-title">Descriere completa</h3>
+            <div class="desc-full" th:text="${product.description != null and !product.description.isEmpty() ? product.description : 'Fara descriere.'}"></div>
+        </section>
+    </section>
+</main>
+</body>
+</html>

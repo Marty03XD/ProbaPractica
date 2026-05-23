@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Produse consumables')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('Catalog consumables · scraping & facturi', null)}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <section class="bnr-panel" th:classappend="${exchangeRates.liveFromBnr()} ? 'bnr-live' : ''">
+        <div class="bnr-header">
+            <div>
+                <span class="bnr-badge" th:classappend="${exchangeRates.liveFromBnr()} ? 'live' : ''"
+                      th:text="${exchangeRates.liveFromBnr()} ? 'Live BNR' : 'Estimativ'">Live BNR</span>
+                <span class="bonus-tag">Bonus</span>
+                <h2 class="bnr-title">Curs valutar BNR</h2>
+                <p class="bnr-source">
+                    <span th:text="${exchangeRates.sourceLabel()}"></span>
+                    · data <span th:text="${#temporals.format(exchangeRates.validDate(), 'dd.MM.yyyy')}"></span>
+                </p>
+            </div>
+        </div>
+        <div class="bnr-rates">
+            <div class="rate-chip">
+                <div class="currency">USD</div>
+                <div class="amount" th:text="${#numbers.formatDecimal(exchangeRates.usdToRon(), 1, 4)}">4.60</div>
+                <div class="suffix">RON</div>
+            </div>
+            <div class="rate-chip">
+                <div class="currency">EUR</div>
+                <div class="amount" th:text="${#numbers.formatDecimal(exchangeRates.eurToRon(), 1, 4)}">4.97</div>
+                <div class="suffix">RON</div>
+            </div>
+            <form th:action="@{/rates/refresh}" method="post">
+                <button type="submit" class="btn btn-ghost btn-sm">Reincarca curs</button>
+            </form>
+        </div>
+    </section>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="label">Produse in catalog</div>
+            <div class="value" th:text="${productCount}">0</div>
+            <div class="hint">Filtrare si sortare active</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Moneda sursa</div>
+            <div class="value" th:text="${defaultCurrency}">USD</div>
+            <div class="hint">Pret RON calculat automat</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Scraping programat</div>
+            <div class="value" style="font-size:1.1rem">12:00–18:00</div>
+            <div class="hint">Orar Europe/Bucharest</div>
+        </div>
+    </div>
+
+    <section class="panel">
+        <div class="actions-bar">
+            <div class="actions-group">
+                <form th:action="@{/scrape}" method="post">
+                    <button type="submit" class="btn btn-primary">Ruleaza scraping acum</button>
+                </form>
+                <form th:action="@{/invoice/upload}" method="post" enctype="multipart/form-data" class="upload-form">
+                    <label class="btn btn-secondary upload-label">
+                        Incarca factura PDF
+                        <input type="file" name="file" accept="application/pdf" required onchange="this.form.submit()"/>
+                    </label>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2 class="panel-title">Cautare si sortare</h2>
+        <form method="get" class="filters">
+            <input type="text" name="filter" placeholder="Cauta dupa denumire sau descriere..."
+                   th:value="${filter}"/>
+            <select name="sort">
+                <option value="nameAsc" th:selected="${sort == 'nameAsc'}">Denumire A-Z</option>
+                <option value="nameDesc" th:selected="${sort == 'nameDesc'}">Denumire Z-A</option>
+                <option value="priceAsc" th:selected="${sort == 'priceAsc'}">Pret USD crescator</option>
+                <option value="priceDesc" th:selected="${sort == 'priceDesc'}">Pret USD descrescator</option>
+                <option value="ronAsc" th:selected="${sort == 'ronAsc'}">Pret RON crescator</option>
+                <option value="ronDesc" th:selected="${sort == 'ronDesc'}">Pret RON descrescator</option>
+            </select>
+            <button type="submit" class="btn btn-ghost">Aplica</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2 class="panel-title">Lista produse</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>Produs</th>
+                    <th>Pret USD</th>
+                    <th>Pret RON</th>
+                    <th>Curs BNR</th>
+                    <th>Descriere</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${products}">
+                    <td>
+                        <div class="product-cell">
+                            <a th:href="@{/products/{id}(id=${p.id})}" class="product-thumb-link" title="Vezi detalii">
+                                <img th:src="${p.imageUrl}" alt="" class="thumb"
+                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2256%22 height=%2256%22%3E%3Crect fill=%22%23161d28%22 width=%2256%22 height=%2256%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%2394a3b8%22 font-size=%2210%22 text-anchor=%22middle%22 dy=%22.3em%22%3EN/A%3C/text%3E%3C/svg%3E'"/>
+                            </a>
+                            <a th:href="@{/products/{id}(id=${p.id})}" class="product-name-link" th:text="${p.name}"></a>
+                        </div>
+                    </td>
+                    <td class="price-usd">
+                        <span th:text="${#numbers.formatDecimal(p.price, 1, 2)}"></span> USD
+                    </td>
+                    <td class="price-ron">
+                        <span th:if="${p.priceRon != null}"
+                              th:text="${#numbers.formatDecimal(p.priceRon, 1, 2) + ' RON'}">-</span>
+                        <span th:if="${p.priceRon == null}">—</span>
+                    </td>
+                    <td>
+                        <span th:if="${p.exchangeRate != null}" class="rate-pill"
+                              th:text="${p.exchangeCurrency + ' ' + #numbers.formatDecimal(p.exchangeRate, 1, 4)}"></span>
+                    </td>
+                    <td>
+                        <div class="desc desc-scroll" th:text="${p.description}"></div>
+                        <a th:href="@{/products/{id}(id=${p.id})}" class="desc-more-link">Detalii complete</a>
+                    </td>
+                    <td class="actions-cell">
+                        <a th:href="@{/products/{id}(id=${p.id})}" class="btn btn-ghost btn-sm">Detalii</a>
+                        <a th:href="@{/products/{id}/edit(id=${p.id})}" class="btn btn-ghost btn-sm">Edit</a>
+                        <form th:action="@{/products/{id}/delete(id=${p.id})}" method="post"
+                              onsubmit="return confirm('Stergi produsul?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Sterge</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(products)}">
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="icon">📦</div>
+                            <p><strong>Niciun produs inca.</strong></p>
+                            <p>Apasa „Ruleaza scraping acum” pentru a incarca catalogul consumables.</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Editare produs')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header('Editare produs', '/')}"></header>
+
+<main class="container">
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+
+    <section class="bnr-panel" th:if="${exchangeRates != null}" th:classappend="${exchangeRates.liveFromBnr()} ? 'bnr-live' : ''">
+        <div>
+            <span class="bnr-badge" th:classappend="${exchangeRates.liveFromBnr()} ? 'live' : ''">Bonus BNR</span>
+            <p class="bnr-source" style="margin-top:0.5rem">
+                1 <span th:text="${defaultCurrency}">USD</span> =
+                <strong th:text="${#numbers.formatDecimal(exchangeRates.usdToRon(), 1, 4)}"></strong> RON
+                (<span th:text="${exchangeRates.sourceLabel()}"></span>)
+            </p>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="edit-grid">
+            <div class="preview-card" th:if="${productForm.imageUrl != null and !productForm.imageUrl.isEmpty()}">
+                <img th:src="${productForm.imageUrl}" alt="Preview"
+                     onerror="this.style.display='none'"/>
+                <div class="preview-ron" th:if="${priceRonPreview != null}">
+                    <span th:text="${#numbers.formatDecimal(priceRonPreview, 1, 2) + ' RON'}"></span>
+                    <br/><span>echivalent la curs BNR</span>
+                </div>
+            </div>
+
+            <form th:action="@{/products/{id}/edit(id=${productForm.id})}" th:object="${productForm}" method="post">
+                <label for="name">Denumire</label>
+                <input id="name" type="text" th:field="*{name}" required/>
+                <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="field-error"></p>
+
+                <label for="price">Pret (<span th:text="${defaultCurrency}">USD</span>)</label>
+                <input id="price" type="number" step="0.01" min="0" th:field="*{price}" required/>
+                <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="field-error"></p>
+
+                <label for="imageUrl">URL imagine</label>
+                <input id="imageUrl" type="url" th:field="*{imageUrl}"/>
+
+                <label for="description">Descriere</label>
+                <textarea id="description" th:field="*{description}" rows="5"></textarea>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Salveaza</button>
+                    <a th:href="@{/}" class="btn btn-ghost">Anuleaza</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

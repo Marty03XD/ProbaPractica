@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ro" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Autentificare')}"></head>
+<body class="auth-page">
+<div class="auth-card">
+    <div class="brand-mark" aria-hidden="true">AB</div>
+    <h1>Autobrand Proba</h1>
+    <p class="subtitle">Autentificare aplicatie · cerinta bonus</p>
+
+    <div th:if="${param.error}" class="alert alert-error" role="alert">
+        <span class="alert-icon">!</span>
+        <span>Utilizator sau parola invalida.</span>
+    </div>
+    <div th:if="${param.logout}" class="alert alert-success" role="status">
+        <span class="alert-icon">&#10003;</span>
+        <span>Ati fost deconectat cu succes.</span>
+    </div>
+
+    <form th:action="@{/login}" method="post">
+        <label for="username">Utilizator</label>
+        <input id="username" type="text" name="username" value="admin" required autocomplete="username"/>
+
+        <label for="password">Parola</label>
+        <input id="password" type="password" name="password" required autocomplete="current-password"/>
+
+        <button type="submit" class="btn btn-primary">Conectare</button>
+    </form>
+
+    <p class="hint">Demo: <code>admin</code> / <code>admin123</code></p>
+</div>
+</body>
+</html>

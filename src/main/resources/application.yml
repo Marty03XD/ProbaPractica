@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: autobrand-proba
+  datasource:
+    url: jdbc:h2:file:./data/autobrand;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+server:
+  port: 8080
+
+app:
+  scraping:
+    base-url: https://www.web-scraping.dev
+    login-url: ${app.scraping.base-url}/api/login
+    products-url: ${app.scraping.base-url}/products?category=consumables
+    username: user123
+    password: password
+  exchange:
+    bnr-url: https://www.bnr.ro/nbrfxrates.xml
+    default-currency: USD
+  scheduler:
+    cron: "0 0 12-18 * * *"
+    zone: Europe/Bucharest
+
+logging:
+  level:
+    ro.autobrand.proba: INFO
+    org.apache.pdfbox: ERROR
+    org.apache.fontbox: ERROR
